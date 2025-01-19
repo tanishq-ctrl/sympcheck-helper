@@ -8,7 +8,6 @@
 [![Contributions Welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/tanishq-ctrl/sympcheck-helper/issues)
 [![Stars](https://img.shields.io/github/stars/tanishq-ctrl/sympcheck-helper?style=social)](https://github.com/tanishq-ctrl/sympcheck-helper/stargazers)
 
-[Demo](https://your-demo-link.com) · [Report Bug](https://github.com/tanishq-ctrl/sympcheck-helper/issues) · [Request Feature](https://github.com/tanishq-ctrl/sympcheck-helper/issues)
 
 ![Project Demo](https://via.placeholder.com/800x400?text=SympCheck+Helper+Demo)
 
