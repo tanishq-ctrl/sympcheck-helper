@@ -1,11 +1,16 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { ChatMessage as ChatMessageComponent } from "@/components/ChatMessage";
 import { ChatInput } from "@/components/ChatInput";
 import { MedicalDisclaimer } from "@/components/MedicalDisclaimer";
 import { ChatMessage, ChatState } from "@/types/chat";
 import { useToast } from "@/components/ui/use-toast";
+import { Button } from "@/components/ui/button";
+import { LogOut } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
+  const navigate = useNavigate();
   const [chatState, setChatState] = useState<ChatState>({
     messages: [
       {
@@ -20,6 +25,19 @@ const Index = () => {
   });
 
   const { toast } = useToast();
+
+  const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to sign out. Please try again.",
+      });
+    } else {
+      navigate("/auth");
+    }
+  };
 
   const handleSendMessage = async (content: string) => {
     const newMessage: ChatMessage = {
@@ -55,7 +73,14 @@ const Index = () => {
   return (
     <div className="flex min-h-screen flex-col bg-background p-4">
       <div className="mx-auto w-full max-w-2xl flex-1">
-        <h1 className="mb-4 text-2xl font-bold text-primary">Healthcare Assistant</h1>
+        <div className="flex justify-between items-center mb-4">
+          <h1 className="text-2xl font-bold text-primary">Healthcare Assistant</h1>
+          <Button variant="outline" onClick={handleLogout}>
+            <LogOut className="mr-2 h-4 w-4" />
+            Sign out
+          </Button>
+        </div>
+        
         <MedicalDisclaimer />
         
         <div className="my-4 flex flex-1 flex-col space-y-4 overflow-y-auto">
