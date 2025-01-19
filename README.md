@@ -9,7 +9,10 @@
 [![Stars](https://img.shields.io/github/stars/tanishq-ctrl/sympcheck-helper?style=social)](https://github.com/tanishq-ctrl/sympcheck-helper/stargazers)
 
 
-![Project Demo](https://via.placeholder.com/800x400?text=SympCheck+Helper+Demo)
+<p align="center">
+  <img src="https://github.com/tanishq-ctrl/sympcheck-helper/blob/main/health_assistant.gif" alt="Health assistant demo">
+</p>
+
 
 </div>
 
