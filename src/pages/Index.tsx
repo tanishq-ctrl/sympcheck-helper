@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { ChatMessage as ChatMessageComponent } from "@/components/ChatMessage";
 import { ChatInput } from "@/components/ChatInput";
 import { MedicalDisclaimer } from "@/components/MedicalDisclaimer";
-import { ChatMessage, ChatState } from "@/types/chat";
+import { ChatMessage, ChatState, MessageRole } from "@/types/chat";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { LogOut, Plus, Loader2 } from "lucide-react";
@@ -85,7 +85,7 @@ const Index = () => {
         messages: data.map(msg => ({
           id: msg.id,
           content: msg.content,
-          role: msg.role,
+          role: msg.role as MessageRole,
           timestamp: new Date(msg.created_at),
         })),
       }));
