@@ -33,13 +33,13 @@ SympCheck Helper is a modern healthcare consultation chatbot that leverages the 
 
 <div align="center">
 
-| Core Features | Status | Technical Features |
-|--------------|--------|-------------------|
-| 🔍 **Symptom Checker** | Ready | 🚀 Vite Development |
-| 💡 **Health Tips & FAQs** | Ready | 💪 TypeScript Support |
-| 🏥 **Provider Search** | In Progress | ⚛️ React Components |
-| 💊 **Medication Reminders** | In Progress | 🎨 shadcn-ui & Tailwind |
-| 🌍 **Multilingual Support** | Ready | 🔐 Supabase Integration |
+| Core Features | Status |
+|--------------|--------|
+| 🔍 **Symptom Checker** | Ready | 
+| 💡 **Health Tips & FAQs** | Ready | 
+| 🏥 **Provider Search** | In Progress |
+| 💊 **Medication Reminders** | In Progress |
+| 🌍 **Multilingual Support** | Ready | 
 
 </div>
 
