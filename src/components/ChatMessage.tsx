@@ -41,6 +41,21 @@ export const ChatMessage = ({ message }: ChatMessageProps) => {
     );
   };
 
+  const formatMessage = (content: string) => {
+    // Replace **text** with bold text
+    let formattedContent = content.replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold">$1</strong>');
+    
+    // Replace #text with capitalized text
+    formattedContent = formattedContent.replace(/###\s*(.*?)(?:\n|$)/g, '<h3 class="text-lg font-semibold uppercase mb-2">$1</h3>');
+    formattedContent = formattedContent.replace(/##\s*(.*?)(?:\n|$)/g, '<h2 class="text-xl font-semibold uppercase mb-2">$1</h2>');
+    formattedContent = formattedContent.replace(/#\s*(.*?)(?:\n|$)/g, '<h1 class="text-2xl font-semibold uppercase mb-3">$1</h1>');
+    
+    // Convert newlines to <br> tags
+    formattedContent = formattedContent.replace(/\n/g, '<br>');
+    
+    return formattedContent;
+  };
+
   return (
     <div
       className={cn(
@@ -62,7 +77,10 @@ export const ChatMessage = ({ message }: ChatMessageProps) => {
         )}
       >
         {message.attachments?.map((attachment) => renderAttachment(attachment))}
-        <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
+        <div 
+          className="text-sm whitespace-pre-wrap leading-relaxed"
+          dangerouslySetInnerHTML={{ __html: formatMessage(message.content) }}
+        />
       </div>
       {isUser && (
         <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg">
