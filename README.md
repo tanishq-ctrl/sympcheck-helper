@@ -63,7 +63,7 @@ SympCheck Helper is a modern healthcare consultation chatbot that leverages the 
 ## 📦 Database Schema
 
 <details>
-<summary>Click to expand database structure</summary>
+<summary>Click to expand database structure.</summary>
 
 ### Users Table
 ```sql
