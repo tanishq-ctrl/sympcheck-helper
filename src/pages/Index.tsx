@@ -8,14 +8,13 @@ import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { LogOut, Plus, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { SidebarConversation } from "@/components/SidebarConversation";
 import { 
   Sidebar, 
   SidebarContent, 
   SidebarProvider,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarMenuItem,
-  SidebarMenuButton,
 } from "@/components/ui/sidebar";
 
 interface Conversation {
@@ -212,30 +211,50 @@ const Index = () => {
     }
   };
 
+  const handleDeleteConversation = async (id: string) => {
+    const { error } = await supabase
+      .from('chat_conversations')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to delete conversation",
+      });
+    } else {
+      setConversations(prev => prev.filter(conv => conv.id !== id));
+      if (currentConversationId === id) {
+        createNewConversation();
+      }
+    }
+  };
+
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen w-full bg-background">
-        <Sidebar>
+      <div className="flex min-h-screen w-full bg-gradient-to-br from-gray-900 to-gray-800">
+        <Sidebar className="border-r border-white/10">
           <SidebarContent>
             <SidebarGroup>
               <SidebarGroupContent>
                 <Button 
                   onClick={createNewConversation}
-                  className="w-full mb-4"
+                  className="w-full mb-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
                   variant="outline"
                 >
                   <Plus className="mr-2 h-4 w-4" />
                   New Chat
                 </Button>
                 {conversations.map((conv) => (
-                  <SidebarMenuItem key={conv.id}>
-                    <SidebarMenuButton
-                      onClick={() => setCurrentConversationId(conv.id)}
-                      className={currentConversationId === conv.id ? "bg-accent" : ""}
-                    >
-                      {conv.title}
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
+                  <SidebarConversation
+                    key={conv.id}
+                    id={conv.id}
+                    title={conv.title}
+                    isActive={currentConversationId === conv.id}
+                    onClick={() => setCurrentConversationId(conv.id)}
+                    onDelete={() => handleDeleteConversation(conv.id)}
+                  />
                 ))}
               </SidebarGroupContent>
             </SidebarGroup>
@@ -243,9 +262,11 @@ const Index = () => {
         </Sidebar>
 
         <div className="flex-1 flex flex-col">
-          <div className="flex justify-between items-center p-4 border-b">
-            <h1 className="text-2xl font-bold text-primary">Healthcare Assistant</h1>
-            <Button variant="outline" onClick={handleLogout}>
+          <div className="flex justify-between items-center p-4 border-b border-white/10 bg-gray-900/50 backdrop-blur-sm">
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 text-transparent bg-clip-text">
+              Healthcare Assistant
+            </h1>
+            <Button variant="outline" onClick={handleLogout} className="border-white/10 hover:bg-white/5">
               <LogOut className="mr-2 h-4 w-4" />
               Sign out
             </Button>
@@ -254,18 +275,18 @@ const Index = () => {
           <div className="flex-1 overflow-hidden flex flex-col p-4">
             <MedicalDisclaimer />
             
-            <div className="flex-1 overflow-y-auto space-y-4 my-4">
+            <div className="flex-1 overflow-y-auto space-y-4 my-4 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
               {chatState.messages.map((message) => (
                 <ChatMessageComponent key={message.id} message={message} />
               ))}
               {chatState.isLoading && (
                 <div className="flex justify-center">
-                  <Loader2 className="h-6 w-6 animate-spin" />
+                  <Loader2 className="h-6 w-6 animate-spin text-blue-400" />
                 </div>
               )}
             </div>
 
-            <div className="sticky bottom-0 bg-background pt-4">
+            <div className="sticky bottom-0 bg-gradient-to-t from-gray-900 to-transparent pt-4">
               <ChatInput onSend={handleSendMessage} isLoading={chatState.isLoading} />
             </div>
           </div>
