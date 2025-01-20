@@ -64,7 +64,7 @@ export const ChatInput = ({ onSend, isLoading }: ChatInputProps) => {
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Type your message..."
-            className="min-h-[60px] flex-1 resize-none bg-transparent border-none focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-gray-400"
+            className="min-h-[60px] flex-1 resize-none bg-transparent text-white border-none focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-gray-400"
             disabled={isLoading}
           />
         </div>
