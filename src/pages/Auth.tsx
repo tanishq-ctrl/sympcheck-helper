@@ -1,23 +1,63 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Auth as SupabaseAuth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Shield } from "lucide-react";
+import { AuthError, AuthApiError } from "@supabase/supabase-js";
 
 const Auth = () => {
   const navigate = useNavigate();
+  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    // Check for existing session on mount
+    supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         navigate("/");
       }
     });
 
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN') {
+        navigate("/");
+      }
+      if (event === 'SIGNED_OUT') {
+        setErrorMessage("");
+      }
+      if (event === 'USER_UPDATED') {
+        const checkSession = async () => {
+          const { error } = await supabase.auth.getSession();
+          if (error) {
+            setErrorMessage(getErrorMessage(error));
+          }
+        };
+        checkSession();
+      }
+    });
+
     return () => subscription.unsubscribe();
   }, [navigate]);
+
+  const getErrorMessage = (error: AuthError) => {
+    if (error instanceof AuthApiError) {
+      switch (error.code) {
+        case 'invalid_credentials':
+          return 'Invalid email or password. Please check your credentials and try again.';
+        case 'email_not_confirmed':
+          return 'Please verify your email address before signing in.';
+        case 'user_not_found':
+          return 'No user found with these credentials.';
+        case 'invalid_grant':
+          return 'Invalid login credentials.';
+        default:
+          return error.message;
+      }
+    }
+    return error.message;
+  };
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
@@ -30,11 +70,11 @@ const Auth = () => {
           </p>
         </div>
 
-        <Alert className="mb-6">
-          <AlertDescription>
-            This is a demo application. Please do not enter real medical information.
-          </AlertDescription>
-        </Alert>
+        {errorMessage && (
+          <Alert variant="destructive">
+            <AlertDescription>{errorMessage}</AlertDescription>
+          </Alert>
+        )}
 
         <SupabaseAuth
           supabaseClient={supabase}
