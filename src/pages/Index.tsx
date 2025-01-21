@@ -31,10 +31,6 @@ const Index = () => {
 
   useEffect(() => {
     checkPatientDetails();
-    loadConversations();
-    if (!currentConversationId) {
-      createNewConversation();
-    }
   }, []);
 
   const checkPatientDetails = async () => {
@@ -46,15 +42,34 @@ const Index = () => {
     if (data) {
       setHasPatientDetails(true);
       setShowWelcomeDialog(false);
+      loadConversations();
+      createNewConversation();
+    } else {
+      setShowWelcomeDialog(true);
+      setHasPatientDetails(false);
     }
   };
 
-  const handlePatientDetailsSubmitted = () => {
+  const handlePatientDetailsSubmitted = async (patientData: any) => {
     setShowWelcomeDialog(false);
     setHasPatientDetails(true);
+    
+    // Create a new conversation and send initial message about symptoms
+    const conversationId = await createNewConversation();
+    if (conversationId) {
+      const initialMessage: ChatMessage = {
+        id: Date.now().toString(),
+        content: `Initial symptoms: ${patientData.symptoms}`,
+        role: "user",
+        timestamp: new Date(),
+      };
+
+      await handleSendMessage(initialMessage.content);
+    }
+
     toast({
       title: "Welcome to HealthAssist!",
-      description: "How can I help you today?",
+      description: "I'll help you with your symptoms.",
     });
   };
 
@@ -72,32 +87,6 @@ const Index = () => {
       });
     } else {
       setConversations(data);
-    }
-  };
-
-  const loadMessages = async (conversationId: string) => {
-    const { data, error } = await supabase
-      .from('chat_messages')
-      .select('*')
-      .eq('conversation_id', conversationId)
-      .order('created_at', { ascending: true });
-
-    if (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to load messages",
-      });
-    } else {
-      setChatState(prev => ({
-        ...prev,
-        messages: data.map(msg => ({
-          id: msg.id,
-          content: msg.content,
-          role: msg.role as MessageRole,
-          timestamp: new Date(msg.created_at),
-        })),
-      }));
     }
   };
 
@@ -119,9 +108,11 @@ const Index = () => {
         title: "Error",
         description: "Failed to create new conversation",
       });
+      return null;
     } else {
       setCurrentConversationId(data.id);
       setConversations(prev => [data, ...prev]);
+      return data.id;
     }
   };
 
@@ -180,7 +171,7 @@ const Index = () => {
             role: m.role,
             content: m.content,
           })),
-          context: "You are HealthAssist, a medical AI assistant. Your purpose is to provide helpful medical information and guidance, while always maintaining appropriate medical disclaimers and encouraging users to seek professional medical help when necessary."
+          context: "You are HealthAssist, a medical AI assistant. Your purpose is to provide helpful medical information and guidance, while always maintaining appropriate medical disclaimers and encouraging users to seek professional medical help when necessary. Please address the patient's symptoms and provide relevant advice."
         },
       });
 
@@ -250,23 +241,25 @@ const Index = () => {
         onPatientDetailsSubmitted={handlePatientDetailsSubmitted}
       />
 
-      <div className="flex min-h-screen w-full bg-gradient-to-br from-gray-900 to-gray-800">
-        <ConversationsSidebar
-          conversations={conversations}
-          currentConversationId={currentConversationId}
-          onNewConversation={createNewConversation}
-          onSelectConversation={setCurrentConversationId}
-          onDeleteConversation={handleDeleteConversation}
-        />
-
-        <div className="flex-1 flex flex-col">
-          <ChatHeader onLogout={handleLogout} />
-          <ChatContainer
-            chatState={chatState}
-            onSendMessage={handleSendMessage}
+      {hasPatientDetails && (
+        <div className="flex min-h-screen w-full bg-gradient-to-br from-gray-900 to-gray-800">
+          <ConversationsSidebar
+            conversations={conversations}
+            currentConversationId={currentConversationId}
+            onNewConversation={createNewConversation}
+            onSelectConversation={setCurrentConversationId}
+            onDeleteConversation={handleDeleteConversation}
           />
+
+          <div className="flex-1 flex flex-col">
+            <ChatHeader onLogout={handleLogout} />
+            <ChatContainer
+              chatState={chatState}
+              onSendMessage={handleSendMessage}
+            />
+          </div>
         </div>
-      </div>
+      )}
     </SidebarProvider>
   );
 };

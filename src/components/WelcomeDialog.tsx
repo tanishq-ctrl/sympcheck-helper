@@ -10,7 +10,7 @@ import { PatientDetailsDialog } from "@/components/PatientDetailsDialog";
 interface WelcomeDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onPatientDetailsSubmitted: () => void;
+  onPatientDetailsSubmitted: (patientData: any) => void;
 }
 
 export const WelcomeDialog = ({
@@ -29,7 +29,7 @@ export const WelcomeDialog = ({
             Let us help you feel better! 😊
           </DialogDescription>
         </DialogHeader>
-        <PatientDetailsDialog onSubmitted={onPatientDetailsSubmitted} />
+        <PatientDetailsDialog onSubmitted={(data) => onPatientDetailsSubmitted(data)} />
       </DialogContent>
     </Dialog>
   );

@@ -24,7 +24,7 @@ const formSchema = z.object({
 });
 
 interface PatientDetailsDialogProps {
-  onSubmitted: () => void;
+  onSubmitted: (data: z.infer<typeof formSchema>) => void;
 }
 
 export function PatientDetailsDialog({ onSubmitted }: PatientDetailsDialogProps) {
@@ -60,7 +60,7 @@ export function PatientDetailsDialog({ onSubmitted }: PatientDetailsDialogProps)
         title: "Details saved successfully!",
         description: "Thank you for providing your information.",
       });
-      onSubmitted();
+      onSubmitted(values);
     } catch (error) {
       toast({
         variant: "destructive",
