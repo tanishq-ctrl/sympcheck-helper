@@ -105,31 +105,40 @@ export type Database = {
       }
       patient_details: {
         Row: {
+          age: number | null
           created_at: string
           email: string
           full_name: string
+          height: number | null
           id: string
           initial_symptoms: string
           phone_number: string
           user_id: string
+          weight: number | null
         }
         Insert: {
+          age?: number | null
           created_at?: string
           email: string
           full_name: string
+          height?: number | null
           id?: string
           initial_symptoms: string
           phone_number: string
           user_id: string
+          weight?: number | null
         }
         Update: {
+          age?: number | null
           created_at?: string
           email?: string
           full_name?: string
+          height?: number | null
           id?: string
           initial_symptoms?: string
           phone_number?: string
           user_id?: string
+          weight?: number | null
         }
         Relationships: []
       }

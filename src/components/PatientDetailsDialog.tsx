@@ -21,6 +21,18 @@ const formSchema = z.object({
   phoneNumber: z.string().min(10, "Please enter a valid phone number"),
   email: z.string().email("Please enter a valid email address"),
   symptoms: z.string().min(10, "Please describe your symptoms in more detail"),
+  age: z.string()
+    .refine((val) => !val || !isNaN(parseInt(val)), "Age must be a number")
+    .transform((val) => (val ? parseInt(val) : null))
+    .nullable(),
+  height: z.string()
+    .refine((val) => !val || !isNaN(parseFloat(val)), "Height must be a number")
+    .transform((val) => (val ? parseFloat(val) : null))
+    .nullable(),
+  weight: z.string()
+    .refine((val) => !val || !isNaN(parseFloat(val)), "Weight must be a number")
+    .transform((val) => (val ? parseFloat(val) : null))
+    .nullable(),
 });
 
 interface PatientDetailsDialogProps {
@@ -38,6 +50,9 @@ export function PatientDetailsDialog({ onSubmitted }: PatientDetailsDialogProps)
       phoneNumber: "",
       email: "",
       symptoms: "",
+      age: "",
+      height: "",
+      weight: "",
     },
   });
 
@@ -51,6 +66,9 @@ export function PatientDetailsDialog({ onSubmitted }: PatientDetailsDialogProps)
           phone_number: values.phoneNumber,
           email: values.email,
           initial_symptoms: values.symptoms,
+          age: values.age,
+          height: values.height,
+          weight: values.weight,
         },
       ]);
 
@@ -90,6 +108,56 @@ export function PatientDetailsDialog({ onSubmitted }: PatientDetailsDialogProps)
             </FormItem>
           )}
         />
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <FormField
+            control={form.control}
+            name="age"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="flex items-center gap-2">
+                  Age <span className="text-xl">👤</span>
+                </FormLabel>
+                <FormControl>
+                  <Input type="number" placeholder="Years" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="height"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="flex items-center gap-2">
+                  Height <span className="text-xl">📏</span>
+                </FormLabel>
+                <FormControl>
+                  <Input type="number" step="0.01" placeholder="cm" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="weight"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="flex items-center gap-2">
+                  Weight <span className="text-xl">⚖️</span>
+                </FormLabel>
+                <FormControl>
+                  <Input type="number" step="0.1" placeholder="kg" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
 
         <FormField
           control={form.control}
