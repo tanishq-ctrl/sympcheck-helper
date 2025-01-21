@@ -103,6 +103,36 @@ export type Database = {
           },
         ]
       }
+      patient_details: {
+        Row: {
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          initial_symptoms: string
+          phone_number: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          full_name: string
+          id?: string
+          initial_symptoms: string
+          phone_number: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          initial_symptoms?: string
+          phone_number?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null

@@ -9,6 +9,14 @@ import { Button } from "@/components/ui/button";
 import { LogOut, Plus, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { SidebarConversation } from "@/components/SidebarConversation";
+import { PatientDetailsDialog } from "@/components/PatientDetailsDialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { 
   Sidebar, 
   SidebarContent, 
@@ -27,6 +35,8 @@ const Index = () => {
   const navigate = useNavigate();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
+  const [showWelcomeDialog, setShowWelcomeDialog] = useState(true);
+  const [hasPatientDetails, setHasPatientDetails] = useState(false);
   const [chatState, setChatState] = useState<ChatState>({
     messages: [],
     isLoading: false,
@@ -36,17 +46,33 @@ const Index = () => {
   const { toast } = useToast();
 
   useEffect(() => {
+    checkPatientDetails();
     loadConversations();
     if (!currentConversationId) {
       createNewConversation();
     }
   }, []);
 
-  useEffect(() => {
-    if (currentConversationId) {
-      loadMessages(currentConversationId);
+  const checkPatientDetails = async () => {
+    const { data, error } = await supabase
+      .from('patient_details')
+      .select('*')
+      .single();
+
+    if (data) {
+      setHasPatientDetails(true);
+      setShowWelcomeDialog(false);
     }
-  }, [currentConversationId]);
+  };
+
+  const handlePatientDetailsSubmitted = () => {
+    setShowWelcomeDialog(false);
+    setHasPatientDetails(true);
+    toast({
+      title: "Welcome to HealthAssist!",
+      description: "How can I help you today?",
+    });
+  };
 
   const loadConversations = async () => {
     const { data, error } = await supabase
@@ -166,10 +192,13 @@ const Index = () => {
 
     try {
       const { data: aiResponse } = await supabase.functions.invoke('chat', {
-        body: { messages: [...chatState.messages, newMessage].map(m => ({
-          role: m.role,
-          content: m.content,
-        }))},
+        body: { 
+          messages: [...chatState.messages, newMessage].map(m => ({
+            role: m.role,
+            content: m.content,
+          })),
+          context: "You are HealthAssist, a medical AI assistant. Your purpose is to provide helpful medical information and guidance, while always maintaining appropriate medical disclaimers and encouraging users to seek professional medical help when necessary."
+        },
       });
 
       if (aiResponse.choices && aiResponse.choices[0]) {
@@ -233,6 +262,20 @@ const Index = () => {
 
   return (
     <SidebarProvider>
+      <Dialog open={showWelcomeDialog} onOpenChange={setShowWelcomeDialog}>
+        <DialogContent className="sm:max-w-[500px] bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold text-center bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              Welcome to HealthAssist! 👨‍⚕️
+            </DialogTitle>
+            <DialogDescription className="text-center text-gray-600 dark:text-gray-300">
+              Let us help you feel better! 😊
+            </DialogDescription>
+          </DialogHeader>
+          <PatientDetailsDialog onSubmitted={handlePatientDetailsSubmitted} />
+        </DialogContent>
+      </Dialog>
+
       <div className="flex min-h-screen w-full bg-gradient-to-br from-gray-900 to-gray-800">
         <Sidebar className="border-r border-white/10">
           <SidebarContent>
@@ -244,7 +287,7 @@ const Index = () => {
                   variant="outline"
                 >
                   <Plus className="mr-2 h-4 w-4" />
-                  New Chat
+                  New Consultation
                 </Button>
                 {conversations.map((conv) => (
                   <SidebarConversation
@@ -264,7 +307,7 @@ const Index = () => {
         <div className="flex-1 flex flex-col">
           <div className="flex justify-between items-center p-4 border-b border-white/10 bg-gray-900/50 backdrop-blur-sm">
             <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 text-transparent bg-clip-text">
-              Healthcare Assistant
+              HealthAssist
             </h1>
             <Button variant="outline" onClick={handleLogout} className="border-white/10 hover:bg-white/5">
               <LogOut className="mr-2 h-4 w-4" />
