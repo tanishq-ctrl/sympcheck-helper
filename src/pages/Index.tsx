@@ -7,7 +7,7 @@ import { WelcomeDialog } from "@/components/WelcomeDialog";
 import { ChatHeader } from "@/components/ChatHeader";
 import { ChatContainer } from "@/components/ChatContainer";
 import { ConversationsSidebar } from "@/components/ConversationsSidebar";
-import { ChatState, ChatMessage, MessageRole } from "@/types/chat";
+import { ChatState, ChatMessage } from "@/types/chat";
 
 interface Conversation {
   id: string;
@@ -21,6 +21,7 @@ const Index = () => {
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
   const [showWelcomeDialog, setShowWelcomeDialog] = useState(true);
   const [hasPatientDetails, setHasPatientDetails] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [chatState, setChatState] = useState<ChatState>({
     messages: [],
     isLoading: false,
@@ -29,64 +30,92 @@ const Index = () => {
 
   const { toast } = useToast();
 
+  // Check authentication status
   useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        if (sessionError) throw sessionError;
+        if (!session) {
+          navigate("/auth");
+          return;
+        }
+        
+        // Set up auth state change listener
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+          if (event === 'SIGNED_OUT' || !session) {
+            navigate("/auth");
+          }
+        });
+
+        return () => subscription.unsubscribe();
+      } catch (error) {
+        console.error('Auth error:', error);
+        toast({
+          variant: "destructive",
+          title: "Authentication Error",
+          description: "Please try logging in again.",
+        });
+        navigate("/auth");
+      }
+    };
+
+    checkAuth();
+  }, [navigate, toast]);
+
+  useEffect(() => {
+    const checkPatientDetails = async () => {
+      try {
+        setIsLoading(true);
+        const { data, error } = await supabase
+          .from('patient_details')
+          .select('*')
+          .maybeSingle();
+
+        if (error) throw error;
+
+        if (data) {
+          setHasPatientDetails(true);
+          setShowWelcomeDialog(false);
+          await loadConversations();
+          if (!currentConversationId) {
+            await createNewConversation();
+          }
+        } else {
+          setShowWelcomeDialog(true);
+          setHasPatientDetails(false);
+        }
+      } catch (error) {
+        console.error('Error checking patient details:', error);
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to load patient details. Please try again.",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
     checkPatientDetails();
   }, []);
 
-  const checkPatientDetails = async () => {
-    const { data, error } = await supabase
-      .from('patient_details')
-      .select('*')
-      .single();
-
-    if (data) {
-      setHasPatientDetails(true);
-      setShowWelcomeDialog(false);
-      loadConversations();
-      createNewConversation();
-    } else {
-      setShowWelcomeDialog(true);
-      setHasPatientDetails(false);
-    }
-  };
-
-  const handlePatientDetailsSubmitted = async (patientData: any) => {
-    setShowWelcomeDialog(false);
-    setHasPatientDetails(true);
-    
-    // Create a new conversation and send initial message about symptoms
-    const conversationId = await createNewConversation();
-    if (conversationId) {
-      const initialMessage: ChatMessage = {
-        id: Date.now().toString(),
-        content: `Initial symptoms: ${patientData.symptoms}`,
-        role: "user",
-        timestamp: new Date(),
-      };
-
-      await handleSendMessage(initialMessage.content);
-    }
-
-    toast({
-      title: "Welcome to HealthAssist!",
-      description: "I'll help you with your symptoms.",
-    });
-  };
-
   const loadConversations = async () => {
-    const { data, error } = await supabase
-      .from('chat_conversations')
-      .select('*')
-      .order('created_at', { ascending: false });
+    try {
+      const { data, error } = await supabase
+        .from('chat_conversations')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-    if (error) {
+      if (error) throw error;
+      setConversations(data || []);
+    } catch (error) {
+      console.error('Error loading conversations:', error);
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to load conversations",
+        description: "Failed to load conversations. Please try again.",
       });
-    } else {
-      setConversations(data);
     }
   };
 
@@ -232,6 +261,45 @@ const Index = () => {
       }
     }
   };
+
+  const handlePatientDetailsSubmitted = async (patientData: any) => {
+    try {
+      setShowWelcomeDialog(false);
+      setHasPatientDetails(true);
+      
+      const conversationId = await createNewConversation();
+      if (conversationId) {
+        const initialMessage: ChatMessage = {
+          id: Date.now().toString(),
+          content: `Initial symptoms: ${patientData.symptoms}`,
+          role: "user",
+          timestamp: new Date(),
+        };
+
+        await handleSendMessage(initialMessage.content);
+      }
+
+      toast({
+        title: "Welcome to HealthAssist!",
+        description: "I'll help you with your symptoms.",
+      });
+    } catch (error) {
+      console.error('Error handling patient details:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to process patient details. Please try again.",
+      });
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500" />
+      </div>
+    );
+  }
 
   return (
     <SidebarProvider>
