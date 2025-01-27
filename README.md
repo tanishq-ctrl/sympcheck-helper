@@ -10,7 +10,7 @@
 
 
 <p align="center">
-  <img src="https://github.com/tanishq-ctrl/sympcheck-helper/blob/main/health_assistant.gif" alt="Health assistant demo">
+  <img src="https://github.com/tanishq-ctrl/sympcheck-helper/blob/main/nutri.gif" alt="Health assistant demo">
 </p>
 
 
