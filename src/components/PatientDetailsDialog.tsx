@@ -35,15 +35,17 @@ const formSchema = z.object({
     .nullable(),
 });
 
+type FormValues = z.infer<typeof formSchema>;
+
 interface PatientDetailsDialogProps {
-  onSubmitted: (data: z.infer<typeof formSchema>) => void;
+  onSubmitted: (data: FormValues) => void;
 }
 
 export function PatientDetailsDialog({ onSubmitted }: PatientDetailsDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       fullName: "",
@@ -56,7 +58,7 @@ export function PatientDetailsDialog({ onSubmitted }: PatientDetailsDialogProps)
     },
   });
 
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+  const onSubmit = async (values: FormValues) => {
     setIsLoading(true);
     try {
       const { error } = await supabase.from("patient_details").insert([
